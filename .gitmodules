@@ -1,7 +1,7 @@
-[submodule "electrs-overlay"]
-	path = electrs-overlay
-	url = https://github.com/dambaev/electrs-overlay.git
 [submodule "overlays/op-energy"]
 	path = overlays/op-energy
 	url = https://github.com/dambaev/op-energy.git
 	branch = op-energy-master
+[submodule "overlays/electrs-overlay"]
+	path = overlays/electrs-overlay
+	url = ssh://git@github.com/dambaev/electrs-overlay.git
