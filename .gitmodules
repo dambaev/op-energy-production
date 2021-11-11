@@ -4,4 +4,4 @@
 	branch = op-energy-master
 [submodule "overlays/electrs-overlay"]
 	path = overlays/electrs-overlay
-	url = ssh://git@github.com/dambaev/electrs-overlay.git
+	url = https://github.com/dambaev/electrs-overlay.git
