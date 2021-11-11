@@ -8,7 +8,7 @@ let
   op-energy-db-psk-mainnet = builtins.readFile ( "/etc/nixos/private/op-energy-db-psk-mainnet.txt");
 in
 {
-  imoprts = [
+  imports = [
     # module, which enables automatic update of the configuration from git
     ./auto-apply-config.nix
     # custom module for already existing electrs derivation
