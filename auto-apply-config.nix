@@ -7,10 +7,9 @@ let
 
     cd /etc/nixos
     git reset --hard --recurse-submodules || true # remove local changes to not to conflict
-    git pull | grep "Already up to date." > /dev/null || {
-      git submodule init || true # in case of first run
-      git submodule update --remote # don't force the support to update every repo
-    }
+    git pull > /dev/null
+    git submodule init || true # in case of first run
+    git submodule update --remote # don't force the support to update every repo
     /run/current-system/sw/bin/systemctl start nixos-upgrade --no-block
   '';
   local_git_ssh_command = # here we want to check the GIT_SSH_COMMAND presence in local settings and use it for fetching config updates
