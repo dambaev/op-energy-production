@@ -19,9 +19,13 @@ in
   system.stateVersion = "21.05";
   # op-energy part
   services.op-energy-backend = {
-    mainnet = {
+    mainnet =
+      let
+        db = "openergy";
+      in {
       db_user = "openergy";
-      db_name = "openergy";
+      db_name = db;
+      account_db_name = "${db}acc";
       db_psk = op-energy-db-psk-mainnet;
       config = ''
         {
@@ -45,7 +49,8 @@ in
             "ENABLED": true,
             "HOST": "127.0.0.1",
             "PORT": 3306,
-            "DATABASE": "openergy",
+            "DATABASE": "${db}",
+            "ACCOUNT_DATABASE": "${db}acc",
             "USERNAME": "openergy",
             "PASSWORD": "${op-energy-db-psk-mainnet}"
           },
