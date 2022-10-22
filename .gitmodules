@@ -5,3 +5,4 @@
 [submodule "overlays/electrs-overlay"]
 	path = overlays/electrs-overlay
 	url = https://github.com/dambaev/electrs-overlay.git
+	branch = nixos-22.05
