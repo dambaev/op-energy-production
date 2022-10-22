@@ -74,7 +74,7 @@ in
     mainnet = { # signet instance
       db_dir = "/mnt/electrs-mainnet";
       cookie_file = "/mnt/bitcoind-mainnet/.cookie";
-      blocks_dir = "/mnt/bitcoind-mainnet/blocks";
+      daemon_dir = "/mnt/bitcoind-mainnet";
     };
   };
 
