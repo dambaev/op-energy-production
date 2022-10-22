@@ -75,7 +75,7 @@ in
       db_dir = "/mnt/electrs-mainnet";
       cookie_file = "/mnt/bitcoind-mainnet/.cookie";
       daemon_dir = "/mnt/bitcoind-mainnet";
-      network = "mainnet";
+      network = "bitcoin";
     };
   };
 
