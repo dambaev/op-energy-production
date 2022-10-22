@@ -17,7 +17,7 @@ in
     # custom module for op-energy
     ./overlays/op-energy/nix/module.nix
   ];
-  system.stateVersion = "21.05";
+  system.stateVersion = "22.05";
   # op-energy part
   services.op-energy-backend = {
     mainnet =
