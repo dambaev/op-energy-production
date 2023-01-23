@@ -38,6 +38,7 @@ in
             "HTTP_PORT": 8999,
             "API_URL_PREFIX": "/api/v1/",
             "BLOCKS_SUMMARIES_INDEXING": false,
+            "INDEXING_BLOCKS_AMOUNT": 0,
             "POLL_RATE_MS": 2000
           },
           "CORE_RPC": {
