@@ -12,8 +12,6 @@ in
   imports = [
     # module, which enables automatic update of the configuration from git
     ./auto-apply-config.nix
-    # custom module for already existing electrs derivation
-    ./overlays/electrs-overlay/module.nix
     # custom module for op-energy
     ./overlays/op-energy/nix/module.nix
   ];
@@ -34,7 +32,7 @@ in
         {
           "MEMPOOL": {
             "NETWORK": "mainnet",
-            "BACKEND": "electrum",
+            "BACKEND": "none",
             "HTTP_PORT": 8999,
             "API_URL_PREFIX": "/api/v1/",
             "BLOCKS_SUMMARIES_INDEXING": false,
@@ -44,11 +42,6 @@ in
           "CORE_RPC": {
             "USERNAME": "op-energy",
             "PASSWORD": "${bitcoind-mainnet-rpc-psk}"
-          },
-          "ELECTRUM": {
-            "HOST": "127.0.0.1",
-            "PORT": 50001,
-            "TLS_ENABLED": false
           },
           "DATABASE": {
             "ENABLED": true,
@@ -72,16 +65,6 @@ in
   # enable op-energy-frontend service
   services.op-energy-frontend = {
     enable = true;
-  };
-
-  # enable electrs service
-  services.electrs = {
-    mainnet = { # signet instance
-      db_dir = "/mnt/electrs-mainnet";
-      cookie_file = "/mnt/bitcoind-mainnet/.cookie";
-      daemon_dir = "/mnt/bitcoind-mainnet";
-      network = "bitcoin";
-    };
   };
 
   # bitcoind mainnet instance
