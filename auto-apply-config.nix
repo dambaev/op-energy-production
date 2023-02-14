@@ -6,11 +6,45 @@ let
 
 
     cd /etc/nixos
-    git reset --hard --recurse-submodules || true # remove local changes to not to conflict
-    git pull > /dev/null
+    git reset --hard > /dev/null # remove local changes to not to conflict
+    git pull --rebase > /dev/null
     git submodule init || true # in case of first run
     git submodule update --remote # don't force the support to update every repo
-    /run/current-system/sw/bin/systemctl start nixos-upgrade --no-block
+    mkdir -p /var/lib/nixos-apply
+    NEW_HASH=$(git log -n 1 | head -n 1 | awk '{print $2}')
+    NEW_SUBMODULES_STATE=$(git submodule status)
+    LAST_HASH=$(cat /var/lib/nixos-apply/hash || echo "")
+    LAST_HASH_FAILED=$(cat /var/lib/nixos-apply/failed || echo 0)
+    LAST_SUBMODULES_STATE=$(cat /var/lib/nixos-apply/submodules || echo "")
+    echo "new repo hash is $NEW_HASH, previous hash is $LAST_HASH, last hash failed builds count $LAST_HASH_FAILED"
+    if [ "$NEW_HASH" != "$LAST_HASH" ]; then
+      echo "hash is different"
+    fi
+    if [ "$NEW_SUBMODULES_STATE" != "$LAST_SUBMODULES_STATE" ]; then
+      echo "submodules state is different"
+    fi
+    if [ "$LAST_HASH_FAILED" -gt "0" ] && [ "$LAST_HASH_FAILED" -lt "5" ]; then
+      echo "failed builds haven't exceeded 5 times"
+    fi
+    if [ "$NEW_HASH" != "$LAST_HASH" ] || [ "$NEW_SUBMODULES_STATE" != "$LAST_SUBMODULES_STATE" ] || ([ "$LAST_HASH_FAILED" -gt "0" ] && [ "$LAST_HASH_FAILED" -lt "5" ]); then
+      /run/current-system/sw/bin/systemctl start nixos-upgrade && {
+        echo $NEW_HASH > /var/lib/nixos-apply/hash
+        echo $NEW_SUBMODULES_STATE > /var/lib/nixos-apply/submodules
+        echo 0 > /var/lib/nixos-apply/failed
+      } || {
+        echo $NEW_HASH > /var/lib/nixos-apply/hash
+        echo $NEW_SUBMODULES_STATE > /var/lib/nixos-apply/submodules
+        if [ "$NEW_HASH" != "$LAST_HASH" ] || [ "$NEW_SUBMODULES_STATE" != "$LAST_SUBMODULES_STATE" ]; then
+          LAST_HASH_FAILED=0 # reset failed build counter as HEAD is now different hash
+        fi
+        echo $(( $LAST_HASH_FAILED + 1 )) > /var/lib/nixos-apply/failed
+      }
+    else
+      echo "no rebuild will be performed"
+      if [ "$LAST_HASH_FAILED" -gt "4" ]; then
+        exit 1 # let monitoring notify about failures
+      fi
+    fi
   '';
   local_git_ssh_command = # here we want to check the GIT_SSH_COMMAND presence in local settings and use it for fetching config updates
     if lib.hasAttrByPath [ "environment" "variables" "GIT_SSH_COMMAND" ] config 
@@ -25,7 +59,7 @@ in
   systemd.services.nixos-apply = {
     description = "keep /etc/nixos state in sync";
     serviceConfig.Type = "oneshot";
-    path = [ pkgs.git pkgs.coreutils nixos_apply_script pkgs.nix pkgs.openssh pkgs.connect];
+    path = [ pkgs.git pkgs.coreutils nixos_apply_script pkgs.nix pkgs.openssh pkgs.connect pkgs.gawk ];
     script =
         ''
         #!${pkgs.stdenv.shell} -e
