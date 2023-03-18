@@ -1,19 +1,41 @@
-{pkgs, lib, ...}:
-let
+env@{
+  GIT_COMMIT_HASH ? ""
+,  OP_ENERGY_REPO_LOCATION ? /etc/nixos/.git/modules/overlays/op-energy
   # import psk from out-of-git file
   # TODO: switch to secrets-manager and change to make it more secure
-  bitcoind-mainnet-rpc-psk = builtins.readFile ( "/etc/nixos/private/bitcoind-mainnet-rpc-psk.txt");
+, bitcoind-signet-rpc-psk ? builtins.readFile ( "/etc/nixos/private/bitcoind-signet-rpc-psk.txt")
   # TODO: refactor to autogenerate HMAC from the password above
-  bitcoind-mainnet-rpc-pskhmac = builtins.readFile ( "/etc/nixos/private/bitcoind-mainnet-rpc-pskhmac.txt");
-  op-energy-db-psk-mainnet = builtins.readFile ( "/etc/nixos/private/op-energy-db-psk-mainnet.txt");
-  op-energy-db-salt-mainnet = builtins.readFile ( "/etc/nixos/private/op-energy-db-salt-mainnet.txt");
+, bitcoind-signet-rpc-pskhmac ? builtins.readFile ( "/etc/nixos/private/bitcoind-signet-rpc-pskhmac.txt")
+, op-energy-db-psk-signet ? builtins.readFile ( "/etc/nixos/private/op-energy-db-psk-signet.txt")
+, op-energy-db-salt-signet ? builtins.readFile ( "/etc/nixos/private/op-energy-db-salt-signet.txt")
+, bitcoind-mainnet-rpc-psk ? builtins.readFile ( "/etc/nixos/private/bitcoind-mainnet-rpc-psk.txt")
+, bitcoind-mainnet-rpc-pskhmac ? builtins.readFile ( "/etc/nixos/private/bitcoind-mainnet-rpc-pskhmac.txt")
+, op-energy-db-psk-mainnet ? builtins.readFile ( "/etc/nixos/private/op-energy-db-psk-mainnet.txt")
+, op-energy-db-salt-mainnet ? builtins.readFile ( "/etc/nixos/private/op-energy-db-salt-mainnet.txt")
+, mainnet_node_ssh_tunnel ? true # by default we want ssh tunnel to main node, but this is useless for github actions as they are using only signet node
+}:
+{pkgs, lib, ...}:
+let
+  sourceWithGit = pkgs.copyPathToStore OP_ENERGY_REPO_LOCATION;
+  GIT_COMMIT_HASH = if builtins.hasAttr "GIT_COMMIT_HASH" env
+    then env.GIT_COMMIT_HASH
+    else builtins.readFile ( # if git commit is empty, then try to get it from git
+      pkgs.runCommand "get-rev1" {
+        nativeBuildInputs = [ pkgs.git ];
+      } ''
+        echo "OP_ENERGY_REPO_LOCATION = ${OP_ENERGY_REPO_LOCATION}"
+        HASH=$(cat ${sourceWithGit}/HEAD | cut -c 1-8 | tr -d '\n' || printf 'NOT A GIT REPO')
+        printf $HASH > $out
+      ''
+    );
+  opEnergyModule = import ./overlays/op-energy/nix/module.nix { GIT_COMMIT_HASH = GIT_COMMIT_HASH; };
 in
 {
   imports = [
     # module, which enables automatic update of the configuration from git
     ./auto-apply-config.nix
     # custom module for op-energy
-    ./overlays/op-energy/nix/module.nix
+    opEnergyModule
   ];
   system.stateVersion = "22.05";
   # op-energy part
