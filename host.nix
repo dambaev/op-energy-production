@@ -43,43 +43,25 @@ in
     mainnet =
       let
         db = "openergy";
-        block_spans_db_name = "${db}_block_spans";
       in {
       db_user = "openergy";
       db_name = db;
       account_db_name = "${db}acc";
-      block_spans_db_name = block_spans_db_name;
       db_psk = op-energy-db-psk-mainnet;
       config = ''
         {
-          "MEMPOOL": {
-            "NETWORK": "mainnet",
-            "BACKEND": "none",
-            "HTTP_PORT": 8999,
-            "API_URL_PREFIX": "/api/v1/",
-            "BLOCKS_SUMMARIES_INDEXING": false,
-            "INDEXING_BLOCKS_AMOUNT": 0,
-            "POLL_RATE_MS": 2000
-          },
-          "CORE_RPC": {
-            "USERNAME": "op-energy",
-            "PASSWORD": "${bitcoind-mainnet-rpc-psk}"
-          },
-          "DATABASE": {
-            "ENABLED": true,
-            "HOST": "127.0.0.1",
-            "PORT": 3306,
-            "DATABASE": "${db}",
-            "ACCOUNT_DATABASE": "${db}acc",
-            "OP_ENERGY_BLOCKCHAIN_DATABASE": "${block_spans_db_name}",
-            "USERNAME": "openergy",
-            "PASSWORD": "${op-energy-db-psk-mainnet}",
-            "SECRET_SALT": "${op-energy-db-salt-mainnet}"
-          },
-          "STATISTICS": {
-            "ENABLED": true,
-            "TX_PER_SECOND_SAMPLE_PERIOD": 150
-          }
+          "DB_PORT": 5432,
+          "DB_HOST": "127.0.0.1",
+          "DB_USER": "${db}",
+          "DB_NAME": "${db}",
+          "DB_PASSWORD": "${op-energy-db-psk-mainnet}",
+          "SECRET_SALT": "${op-energy-db-salt-mainnet}",
+          "API_HTTP_PORT": 8999,
+          "BTC_URL": "http://127.0.0.1:8332",
+          "BTC_USER": "op-energy",
+          "BTC_PASSWORD": "${bitcoind-mainnet-rpc-psk}",
+          "BTC_POLL_RATE_SECS": 10,
+          "SCHEDULER_POLL_RATE_SECS": 10
         }
       '';
     };
